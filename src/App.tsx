@@ -10,6 +10,10 @@ import {
 import { api } from "../convex/_generated/api";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useState } from "react";
+import { Button } from "./components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./components/ui/card";
+import { Input } from "./components/ui/input";
+import { Label } from "./components/ui/label";
 
 export default function App() {
   return (
@@ -39,12 +43,13 @@ function SignOutButton() {
   return (
     <>
       {isAuthenticated && (
-        <button
-          className="bg-slate-200 dark:bg-slate-800 text-dark dark:text-light rounded-md px-2 py-1"
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => void signOut()}
         >
           Sign out
-        </button>
+        </Button>
       )}
     </>
   );
@@ -68,36 +73,39 @@ function SignInForm() {
           });
         }}
       >
-        <input
-          className="bg-light dark:bg-dark text-dark dark:text-light rounded-md p-2 border-2 border-slate-200 dark:border-slate-800"
+        <Label htmlFor="email">Email</Label>
+        <Input
           type="email"
           name="email"
+          id="email"
           placeholder="Email"
         />
-        <input
-          className="bg-light dark:bg-dark text-dark dark:text-light rounded-md p-2 border-2 border-slate-200 dark:border-slate-800"
+        <Label htmlFor="password">Password</Label>
+        <Input
           type="password"
           name="password"
+          id="password"
           placeholder="Password"
         />
-        <button
-          className="bg-dark dark:bg-light text-light dark:text-dark rounded-md"
+        <Button
           type="submit"
+          variant="default"
         >
           {flow === "signIn" ? "Sign in" : "Sign up"}
-        </button>
+        </Button>
         <div className="flex flex-row gap-2">
           <span>
             {flow === "signIn"
               ? "Don't have an account?"
               : "Already have an account?"}
           </span>
-          <span
-            className="text-dark dark:text-light underline hover:no-underline cursor-pointer"
+          <Button
+            variant="link"
+            type="button"
             onClick={() => setFlow(flow === "signIn" ? "signUp" : "signIn")}
           >
             {flow === "signIn" ? "Sign up instead" : "Sign in instead"}
-          </span>
+          </Button>
         </div>
         {error && (
           <div className="bg-red-500/20 border-2 border-red-500/50 rounded-md p-2">
@@ -134,14 +142,15 @@ function Content() {
         is persisted in the Convex cloud database!
       </p>
       <p>
-        <button
-          className="bg-dark dark:bg-light text-light dark:text-dark text-sm px-4 py-2 rounded-md border-2"
+        <Button
+          variant="default"
+          size="sm"
           onClick={() => {
             void addNumber({ value: Math.floor(Math.random() * 10) });
           }}
         >
           Add a random number
-        </button>
+        </Button>
       </p>
       <p>
         Numbers:{" "}
@@ -208,11 +217,15 @@ function ResourceCard({
   href: string;
 }) {
   return (
-    <div className="flex flex-col gap-2 bg-slate-200 dark:bg-slate-800 p-4 rounded-md h-28 overflow-auto">
-      <a href={href} className="text-sm underline hover:no-underline">
-        {title}
-      </a>
-      <p className="text-xs">{description}</p>
-    </div>
+    <Card className="h-28 overflow-auto">
+      <CardHeader>
+        <CardTitle>
+          <a href={href} className="text-sm underline hover:no-underline">
+            {title}
+          </a>
+        </CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+    </Card>
   );
 }
