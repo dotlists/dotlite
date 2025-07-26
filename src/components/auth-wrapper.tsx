@@ -17,26 +17,26 @@ export default function AuthWrapper(props: { Content: React.ComponentType }) {
     <>
       <main>
         <Authenticated>
-          <div className="top-0 right-0 fixed mr-2 mt-2 flex gap-5">
-            <div className="flex">
+          <div className="fixed w-full top-0 p-2 bg-white z-[1000]">
+          <div className="ml-auto right-0 flex gap-2">
               <img
                 src={image ?? undefined}
                 className="w-7 h-7 rounded-full my-auto"
               ></img>{" "}
-              <p className="ml-2 my-auto">{viewer ?? "Anonymous"}</p>
-            </div>
+              <p className="my-auto mr-auto">{viewer ?? "Anonymous"}</p>
             {isAuthenticated && (
               <Button variant="fancy" onClick={() => void signOut()}>
                 Sign out
               </Button>
             )}
           </div>
+          </div>
+
           <props.Content />
         </Authenticated>
         <Unauthenticated>
-          <div className="w-[100vw] h-[100vh]">
+          <div className="w-screen h-screen flex justify-center items-center">
           <Button
-            className="w-[14vw] h-[4vh] mx-[43vw] my-[48vh]"
             variant="fancy"
             type="button"
             onClick={() => void signIn("google")}
