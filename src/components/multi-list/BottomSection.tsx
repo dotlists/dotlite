@@ -32,13 +32,25 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
   const [localTexts, setLocalTexts] = useState<Record<string, string>>({});
   const [lastCreatedNodeId, setLastCreatedNodeId] = useState<Id<'nodes'> | null>(null);
 
-  // Initialize local texts from nodes
+  // Initialize local texts from nodes, preserving existing local changes
   useEffect(() => {
-    const newLocalTexts: Record<string, string> = {};
-    nodes.forEach(node => {
-      newLocalTexts[node._id] = node.text;
+    setLocalTexts(prev => {
+      const newLocalTexts = { ...prev };
+      nodes.forEach(node => {
+        // Only set from database if we don't have local text for this node
+        if (!(node._id in newLocalTexts)) {
+          newLocalTexts[node._id] = node.text;
+        }
+      });
+      // Remove any local texts for nodes that no longer exist
+      const nodeIds = new Set(nodes.map(n => n._id));
+      Object.keys(newLocalTexts).forEach(nodeId => {
+        if (!nodeIds.has(nodeId as Id<'nodes'>)) {
+          delete newLocalTexts[nodeId];
+        }
+      });
+      return newLocalTexts;
     });
-    setLocalTexts(newLocalTexts);
   }, [nodes]);
 
   // Add item
@@ -166,7 +178,7 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                     void handleStateChange(node._id, node.state, 2);
                   }}
                     className={clsx(
-                      "w-6 mx-2 rounded-full transition-all duration-100 cursor-pointer hover:blur-xs",
+                      "w-6 mx-2 mb-1 rounded-full transition-all duration-100 cursor-pointer hover:blur-xs",
                       colorClass,
                     )}
                   ></div>
@@ -174,7 +186,7 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                 <Textarea
                   value={localText}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleTextChange(node._id, e.target.value)}
-                  className="my-auto p-0 border-0 text-base bg-transparent placeholder:text-gray"
+                  className="my-auto pt-0.5 border-0 text-base bg-transparent placeholder:text-gray"
                   rows={1}
                   placeholder="Add a task..."
                   style={{
@@ -220,7 +232,37 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                       void handleDeleteNode(node._id);
                       return;
                     }
-                    // Simplified navigation - remove complex arrow key handling
+
+                    // Arrow key navigation
+                    const currentIndex = sortedNodes.findIndex(n => n._id === node._id);
+                    
+                    if (
+                      e.key === 'ArrowUp' &&
+                      textarea.selectionStart === 0 &&
+                      textarea.selectionEnd === 0 &&
+                      currentIndex > 0
+                    ) {
+                      e.preventDefault();
+                      const prevNode = sortedNodes[currentIndex - 1];
+                      textareaRefs.current.get(prevNode._id)?.focus();
+                    }
+                    
+                    if (
+                      e.key === 'ArrowDown' &&
+                      textarea.selectionStart === textarea.value.length &&
+                      textarea.selectionEnd === textarea.value.length &&
+                      currentIndex < sortedNodes.length - 1
+                    ) {
+                      const value = textarea.value;
+                      const beforeCaret = value.slice(0, textarea.selectionStart);
+                      if (
+                        beforeCaret.split('\n').length === value.split('\n').length
+                      ) {
+                        e.preventDefault();
+                        const nextNode = sortedNodes[currentIndex + 1];
+                        textareaRefs.current.get(nextNode._id)?.focus();
+                      }
+                    }
                   }}
                 />
 
