@@ -114,7 +114,7 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
     try {
       await updateNodeState({
         nodeId,
-        state: nextState,
+        state: nextState as 'red' | 'yellow' | 'green',
       });
     } catch (error) {
       console.error('Failed to update node state:', error);
