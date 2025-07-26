@@ -27,19 +27,19 @@ export default function MiddleSection({ nodes }: MiddleSectionProps) {
       <div className="flex h-12 w-full rounded-xl overflow-hidden bg-secondary">
         {redCount > 0 && (
           <div
-            className="bg-destructive transition-all duration-300"
+            className="bg-destructive transition-all duration-75"
             style={{ width: `${redPct}%` }}
           />
         )}
         {yellowCount > 0 && (
           <div
-            className="bg-yellow-500 transition-all duration-300"
+            className="bg-yellow-500 transition-all duration-75"
             style={{ width: `${yellowPct}%` }}
           />
         )}
         {greenCount > 0 && (
           <div
-            className="bg-green-500 transition-all duration-300"
+            className="bg-green-500 transition-all duration-75"
             style={{ width: `${greenPct}%` }}
           />
         )}

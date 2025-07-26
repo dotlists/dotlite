@@ -5,7 +5,7 @@ import { Id } from '../../../convex/_generated/dataModel';
 import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus } from 'lucide-react';
+import { Trash2, Plus } from 'lucide-react';
 
 type Node = {
   _id: Id<'nodes'>;
@@ -27,10 +27,11 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
   const updateNodeState = useMutation(api.lists.updateNodeState);
   const deleteNode = useMutation(api.lists.deleteNode);
 
-  const textareaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  const [focusedIdx, setFocusedIdx] = useState<number | null>(null);
+  const textareaRefs = useRef<Map<Id<'nodes'>, HTMLTextAreaElement>>(new Map());
+  const [hoveredNodeId, setHoveredNodeId] = useState<Id<'nodes'> | null>(null);
+  const [focusedNodeId, setFocusedNodeId] = useState<Id<'nodes'> | null>(null);
   const [localTexts, setLocalTexts] = useState<Record<string, string>>({});
+  const [lastCreatedNodeId, setLastCreatedNodeId] = useState<Id<'nodes'> | null>(null);
 
   // Initialize local texts from nodes
   useEffect(() => {
@@ -44,23 +45,26 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
   // Add item
   const addItem = useCallback(async () => {
     try {
-      await createNode({
+      const newNodeId = await createNode({
         listId,
         text: "",
         state: 'red',
       });
-      setTimeout(() => {
-        textareaRefs.current[nodes.length]?.focus();
-      }, 100);
+      setLastCreatedNodeId(newNodeId);
     } catch (error) {
       console.error('Failed to create node:', error);
     }
-  }, [listId, createNode, nodes.length]);
+  }, [listId, createNode]);
 
   // Cmd+Enter to add item
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        // Don't create a new item if we're currently focused on a textarea
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.tagName === 'TEXTAREA') {
+          return;
+        }
         e.preventDefault();
         void addItem();
       }
@@ -88,13 +92,7 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
 
   const handleTextBlur = async (node: Node, newText: string) => {
     const trimmed = newText.trim();
-    if (trimmed === "") {
-      try {
-        await deleteNode({ nodeId: node._id });
-      } catch (error) {
-        console.error('Failed to delete node:', error);
-      }
-    } else if (trimmed !== node.text) {
+    if (trimmed !== node.text) {
       try {
         await updateNodeText({
           nodeId: node._id,
@@ -148,7 +146,6 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
       <motion.div layout className="space-y-2">
         <AnimatePresence>
           {sortedNodes.map((node) => {
-            const index = nodes.findIndex((n) => n._id === node._id);
             const localText = localTexts[node._id] ?? node.text;
 
             return (
@@ -158,14 +155,14 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
+                transition={{ duration: 0.1, ease: "easeOut" }}
                 className="flex items-start gap-3"
-                onMouseEnter={() => setHoveredIdx(index)}
-                onMouseLeave={() => setHoveredIdx(null)}
+                onMouseEnter={() => setHoveredNodeId(node._id)}
+                onMouseLeave={() => setHoveredNodeId(null)}
               >
                 <div
                   className={`
-                    rounded-full w-6 h-6 shrink-0 mb-auto transition-all duration-200 cursor-pointer
+                    rounded-full w-6 h-6 shrink-0 mb-auto transition-all duration-75 cursor-pointer
                     ${node.state === 'red' ? 'bg-destructive' : ''}
                     ${node.state === 'yellow' ? 'bg-yellow-500' : ''}
                     ${node.state === 'green' ? 'bg-green-500' : ''}
@@ -190,72 +187,56 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                     overflowY: 'hidden'
                   }}
                   ref={(el: HTMLTextAreaElement | null) => {
-                    textareaRefs.current[index] = el;
+                    if (el) {
+                      textareaRefs.current.set(node._id, el);
+                      if (lastCreatedNodeId === node._id) {
+                        el.focus();
+                        setLastCreatedNodeId(null);
+                      }
+                    } else {
+                      textareaRefs.current.delete(node._id);
+                    }
                   }}
                   onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
                     const textarea = e.currentTarget;
                     textarea.style.height = 'auto';
                     textarea.style.height = `${Math.max(32, textarea.scrollHeight)}px`;
                   }}
-                  onFocus={() => setFocusedIdx(index)}
+                  onFocus={() => setFocusedNodeId(node._id)}
                   onBlur={(e: React.FocusEvent<HTMLTextAreaElement>) => {
-                    setFocusedIdx(null);
+                    setFocusedNodeId(null);
                     void handleTextBlur(node, e.currentTarget.value);
                   }}
                   onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                     const textarea = e.currentTarget;
+
+                    // Handle cmd+enter to create new item from within textarea
+                    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                      e.preventDefault();
+                      void addItem();
+                      return;
+                    }
+
                     if (
                       e.key === 'Backspace' &&
                       textarea.value === ''
                     ) {
                       e.preventDefault();
                       void handleDeleteNode(node._id);
-                      setTimeout(() => {
-                        if (index > 0) {
-                          textareaRefs.current[index - 1]?.focus();
-                        } else if (nodes.length > 1) {
-                          textareaRefs.current[1]?.focus();
-                        }
-                      }, 0);
                       return;
                     }
-                    if (
-                      e.key === 'ArrowUp' &&
-                      textarea.selectionStart === 0 &&
-                      textarea.selectionEnd === 0 &&
-                      index > 0
-                    ) {
-                      e.preventDefault();
-                      textareaRefs.current[index - 1]?.focus();
-                    }
-                    if (
-                      e.key === 'ArrowDown' &&
-                      textarea.selectionStart === textarea.value.length &&
-                      textarea.selectionEnd === textarea.value.length &&
-                      index < nodes.length - 1
-                    ) {
-                      const value = textarea.value;
-                      const beforeCaret = value.slice(0, textarea.selectionStart);
-                      if (
-                        beforeCaret.split('\n').length === value.split('\n').length
-                      ) {
-                        e.preventDefault();
-                        textareaRefs.current[index + 1]?.focus();
-                      }
-                    }
+                    // Simplified navigation - remove complex arrow key handling
                   }}
                 />
 
-                {((focusedIdx === null && hoveredIdx === index) || focusedIdx === index) && (
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    className="w-6 h-6 shrink-0 mt-0.5 opacity-70 hover:opacity-100"
-                    onClick={() => void handleDeleteNode(node._id)}
-                  >
-                    <X className="w-3 h-3" />
-                  </Button>
-                )}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="w-6 h-6 shrink-0 mt-0.5 opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
+                  onClick={() => void handleDeleteNode(node._id)}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
               </motion.div>
             );
           })}
