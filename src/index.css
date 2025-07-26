@@ -3,11 +3,16 @@
 
 @custom-variant dark (&:is(.dark *));
 :root {
-  --background: oklch(1.0000 0 0);
+    --font-serif: "PP Editorial";
+    --font-sans:
+      Geist;
+    --font-mono: "Geist Mono";
+
+  --background: white;
   --foreground: oklch(0.2161 0.0061 56.0434);
   --card: #fffff;
   --card-foreground: oklch(0 0 0);
-  --popover: oklch(5.2731 1.7792 142.5261);
+  --popover: white;
   --popover-foreground: oklch(0 0 0);
   --primary: oklch(0.6463 0.1900 258.8272);
   --primary-foreground: oklch(1.0000 0 0);
@@ -15,7 +20,7 @@
   --secondary-foreground: oklch(0 0 0);
   --muted: oklch(1.0000 0 0);
   --muted-foreground: #00000;
-  --accent: oklch(0.8258 0.1081 230.4893);
+  --accent: oklch(0.6463 0.1900 258.8272);
   --accent-foreground: oklch(0.9507 0.0258 235.3470);
   --destructive: oklch(0.6368 0.2078 25.3313);
   --destructive-foreground: oklch(0.9705 0.0129 17.3797);
@@ -35,9 +40,6 @@
   --sidebar-accent-foreground: oklch(0.5102 0.2618 276.9361);
   --sidebar-border: ;
   --sidebar-ring: #00000;
-  --font-sans: var(--font-geist-sans);
-  --font-serif: Playfair Display, serif;
-  --font-mono: var(--font-geist-mono);
   --radius: 1.2rem;
   --shadow-2xs: 0px 2px 4px 0px hsl( / 0.05);
   --shadow-xs: 0px 2px 4px 0px hsl( / 0.05);
@@ -160,4 +162,25 @@
 
 body {
   letter-spacing: var(--tracking-normal);
+}
+@font-face {
+  font-family: "PP Editorial";
+  src: url("/pp-editorial.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("/Geist-Regular.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/GeistMono-Regular.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }

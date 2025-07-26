@@ -10,4 +10,19 @@ export default defineSchema({
   numbers: defineTable({
     value: v.number(),
   }),
+  lists: defineTable({
+    name: v.string(),
+    userId: v.id("users"),
+    order: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_order", ["userId", "order"]),
+  nodes: defineTable({
+    text: v.string(),
+    state: v.union(v.literal("red"), v.literal("yellow"), v.literal("green")),
+    listId: v.id("lists"),
+    order: v.number(),
+  })
+    .index("by_list", ["listId"])
+    .index("by_list_and_order", ["listId", "order"]),
 });

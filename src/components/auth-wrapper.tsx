@@ -37,7 +37,7 @@ export default function AuthWrapper(props: { Content: React.ComponentType }) {
           <div className="w-[100vw] h-[100vh]">
           <Button
             className="w-[14vw] h-[4vh] mx-[43vw] my-[48vh]"
-            variant="default"
+            variant="fancy"
             type="button"
             onClick={() => void signIn("google")}
           >
