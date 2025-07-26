@@ -123,6 +123,7 @@ export default function TopSection({ lists, selectedList, setSelectedListId }: T
               onClick={() => setSelectedListId(list._id)}
               className={`
                 flex items-center justify-between cursor-pointer
+                my-1.5
                 ${selectedList._id === list._id ? 'bg-accent font-medium' : ''}
                 ${dragOverIdx === idx && draggedIdx !== null && draggedIdx !== idx ? 'bg-accent/50' : ''}
               `}
@@ -168,7 +169,7 @@ export default function TopSection({ lists, selectedList, setSelectedListId }: T
 
           <DropdownMenuItem
             onClick={() => void handleDeleteList()}
-            className="text-sm text-destructive focus:text-destructive"
+            className="text-sm text-destructive focus:text-destructive h-10"
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Delete Current List

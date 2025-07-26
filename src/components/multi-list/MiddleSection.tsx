@@ -24,7 +24,7 @@ export default function MiddleSection({ nodes }: MiddleSectionProps) {
 
   return (
     <div className="w-full">
-      <div className="flex h-12 w-full rounded-xl overflow-hidden bg-secondary">
+      <div className="flex h-10 w-full rounded-xl overflow-hidden bg-secondary">
         {redCount > 0 && (
           <div
             className="bg-destructive transition-all duration-75"
