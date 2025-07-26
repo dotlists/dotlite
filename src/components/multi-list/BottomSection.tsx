@@ -28,8 +28,6 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
   const deleteNode = useMutation(api.lists.deleteNode);
 
   const textareaRefs = useRef<Map<Id<'nodes'>, HTMLTextAreaElement>>(new Map());
-  const [hoveredNodeId, setHoveredNodeId] = useState<Id<'nodes'> | null>(null);
-  const [focusedNodeId, setFocusedNodeId] = useState<Id<'nodes'> | null>(null);
   const [localTexts, setLocalTexts] = useState<Record<string, string>>({});
   const [lastCreatedNodeId, setLastCreatedNodeId] = useState<Id<'nodes'> | null>(null);
 
@@ -157,8 +155,6 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.1, ease: "easeOut" }}
                 className="flex items-start gap-3"
-                onMouseEnter={() => setHoveredNodeId(node._id)}
-                onMouseLeave={() => setHoveredNodeId(null)}
               >
                 <div
                   className={`
@@ -202,9 +198,7 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                     textarea.style.height = 'auto';
                     textarea.style.height = `${Math.max(32, textarea.scrollHeight)}px`;
                   }}
-                  onFocus={() => setFocusedNodeId(node._id)}
                   onBlur={(e: React.FocusEvent<HTMLTextAreaElement>) => {
-                    setFocusedNodeId(null);
                     void handleTextBlur(node, e.currentTarget.value);
                   }}
                   onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
