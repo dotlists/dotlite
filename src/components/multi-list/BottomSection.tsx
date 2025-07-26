@@ -120,7 +120,7 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
       console.error('Failed to update node state:', error);
     }
   };
-
+//
   const handleDeleteNode = async (nodeId: Id<'nodes'>) => {
     try {
       await deleteNode({ nodeId });
