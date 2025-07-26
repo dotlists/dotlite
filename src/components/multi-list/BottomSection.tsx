@@ -6,6 +6,7 @@ import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Plus } from 'lucide-react';
+import clsx from 'clsx';
 
 type Node = {
   _id: Id<'nodes'>;
@@ -145,7 +146,9 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
         <AnimatePresence>
           {sortedNodes.map((node) => {
             const localText = localTexts[node._id] ?? node.text;
-
+            const colorClass = node.state === 'red' ? 'bg-red-500' :
+                              node.state === 'yellow' ? 'bg-yellow-500' :
+                              'bg-green-500';
             return (
               <motion.div
                 key={node._id}
@@ -154,21 +157,19 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.1, ease: "easeOut" }}
-                className="flex items-start gap-3"
+                className="flex"
               >
                 <div
-                  className={`
-                    rounded-full w-6 h-6 shrink-0 mb-auto transition-all duration-75 cursor-pointer
-                    ${node.state === 'red' ? 'bg-destructive' : ''}
-                    ${node.state === 'yellow' ? 'bg-yellow-500' : ''}
-                    ${node.state === 'green' ? 'bg-green-500' : ''}
-                  `}
                   onClick={() => void handleStateChange(node._id, node.state, 1)}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     void handleStateChange(node._id, node.state, 2);
                   }}
-                />
+                    className={clsx(
+                      "w-6 mx-2 rounded-full transition-all duration-100 cursor-pointer hover:blur-xs",
+                      colorClass,
+                    )}
+                  ></div>
 
                 <Textarea
                   value={localText}
@@ -226,7 +227,7 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="w-6 h-6 shrink-0 mt-0.5 opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
+                  className="w-6 h-6 my-auto opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
                   onClick={() => void handleDeleteNode(node._id)}
                 >
                   <Trash2 className="w-3 h-3" />
