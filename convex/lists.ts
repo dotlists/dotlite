@@ -4,7 +4,9 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 
 // Get all lists for the current user
 export const getLists = query({
-  args: {},
+  args: {
+    userId: v.optional(v.id("users")),
+  },
   returns: v.array(
     v.object({
       _id: v.id("lists"),
@@ -14,12 +16,16 @@ export const getLists = query({
       order: v.number(),
     })
   ),
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
+  handler: async (ctx, args) => {
+    let userId;
+    if (args.userId) {
+      userId = args.userId;
+    } else {
+      userId = await getAuthUserId(ctx);
+      if (!userId) {
+        throw new Error("Not authenticated");
+      }
     }
-
     const lists = await ctx.db
       .query("lists")
       .withIndex("by_user_and_order", (q) => q.eq("userId", userId))
@@ -33,6 +39,7 @@ export const getLists = query({
 // Get nodes for a specific list
 export const getNodes = query({
   args: {
+    userId: v.optional(v.id("users")),
     listId: v.id("lists"),
   },
   returns: v.array(
@@ -47,7 +54,15 @@ export const getNodes = query({
     })
   ),
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
+    let userId;
+    if (args.userId) {
+      userId = args.userId;
+    } else {
+      userId = await getAuthUserId(ctx);
+      if (!userId) {
+        throw new Error("Not authenticated");
+      }
+    }
     if (!userId) {
       throw new Error("Not authenticated");
     }

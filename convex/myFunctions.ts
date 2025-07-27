@@ -10,6 +10,7 @@ export const getUser = query({
     return {
       viewer: user?.name ?? null,
       image: user?.image ?? null,
+      id: userId ?? null,
     };
   },
 });

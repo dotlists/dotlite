@@ -8,7 +8,7 @@ import MiddleSection from './MiddleSection';
 import BottomSection from './BottomSection';
 
 export default function MultiListApp() {
-  const listsQuery = useQuery(api.lists.getLists);
+  const listsQuery = useQuery(api.lists.getLists, {});
   const lists = useMemo(() => listsQuery ?? [], [listsQuery]);
   const initializeUserLists = useMutation(api.lists.initializeUserLists);
 

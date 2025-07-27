@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useMutation } from "convex/react";
+import { useState, useEffect, useMemo } from "react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { Button } from "../ui/button";
@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "../ui/dropdown-menu";
-import { ChevronDown, Plus, Trash2, GripVertical } from "lucide-react";
+import { ChevronDown, Plus, Trash2, GripVertical, Calendar1, Settings2, Settings } from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -19,7 +19,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-
+import { ShareLinkComponent } from "./ShareLink";
+// webcal://brainy-emu-524.convex.site/calendar?k570tr8q5evckdvh24ydj6sczn7mefkz
 type List = {
   _id: Id<"lists">;
   _creationTime: number;
@@ -43,6 +44,8 @@ export default function TopSection({
   const createList = useMutation(api.lists.createList);
   const deleteList = useMutation(api.lists.deleteList);
   const reorderLists = useMutation(api.lists.reorderLists);
+
+  const user = useQuery(api.myFunctions.getUser) ?? null;
 
   const [listName, setListName] = useState(selectedList.name);
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
@@ -99,14 +102,26 @@ export default function TopSection({
     try {
       await deleteList({ listId: selectedList._id });
       // After deletion, set selected list to the first available list
-      const remainingLists = lists.filter(l => l._id !== selectedList._id);
+      const remainingLists = lists.filter((l) => l._id !== selectedList._id);
       if (remainingLists.length > 0) {
         setSelectedListId(remainingLists[0]._id);
       }
     } catch (error) {
-      console.error('Failed to delete list:', error);
+      console.error("Failed to delete list:", error);
     }
   };
+
+  const calendarUrl = useMemo(() => {
+    if (user == null || user.id == null) {
+      return;
+    }
+    let convex_url = (import.meta.env as any).VITE_CONVEX_URL;
+    convex_url = convex_url.replace('https://', 'webcal://');
+    convex_url = convex_url.replace('.convex.cloud', '.convex.site');
+    convex_url += `/calendar?${user.id}`;
+    console.log(convex_url);
+    return convex_url;
+  }, [user]);
 
   return (
     <div className="relative flex items-center gap-2">
@@ -118,6 +133,29 @@ export default function TopSection({
         onBlur={(e) => void handleListNameChange(e.target.value)}
         placeholder="list name goes here"
       />
+
+      <Dialog>
+        <DialogTrigger className="">
+          <Button variant="ghost">
+            <Settings className="w-4 h-4" />
+          </Button>
+        </DialogTrigger>
+
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Settings</DialogTitle>
+            <DialogDescription>
+             <h2 className="font-serif text-lg">Calendar integration</h2>
+             <p><b>For Google Calendar: </b>
+               Go to Settings &gt; Add Calendar &gt; From URL and enter the below link.</p>
+             <p><b>For other calendars: </b>
+               Similarly, look for the option to import an iCal calendar and use the link below.</p>
+             <p><b>Don't share this link with other users; they can use this link to access your todos.</b></p>
+             <ShareLinkComponent link={calendarUrl} />
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -219,8 +257,8 @@ export default function TopSection({
                     variant="destructive"
                     onClick={() => void handleDeleteList()}
                   >
-                  Delete this list
-                </Button>
+                    Delete this list
+                  </Button>
                 </DialogClose>
               </DialogContent>
             )}
