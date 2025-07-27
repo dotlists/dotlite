@@ -18,12 +18,12 @@ export default function AuthWrapper(props: { Content: React.ComponentType }) {
       <main>
         <Authenticated>
           <div className="fixed w-full top-0 p-2 bg-white z-[1000]">
-            <div className="flex">
+            <div className="flex gap-2">
               <img
                 src={image ?? undefined}
                 className="w-7 h-7 rounded-full my-auto"
               ></img>
-              <p className="my-auto ml-2 mr-auto">{viewer ?? "Anonymous"}</p>
+              <p className="my-auto mr-auto">{viewer ?? "Anonymous"}</p>
               {isAuthenticated && (
                 <Button variant="fancy" onClick={() => void signOut()}>
                   Sign out
