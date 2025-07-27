@@ -1,26 +1,44 @@
-import { useState, useEffect } from 'react';
-import { useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { Id } from '../../../convex/_generated/dataModel';
-import { Button } from '../ui/button';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../ui/dropdown-menu';
-import { ChevronDown, Plus, Trash2, GripVertical } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { Id } from "../../../convex/_generated/dataModel";
+import { Button } from "../ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "../ui/dropdown-menu";
+import { ChevronDown, Plus, Trash2, GripVertical } from "lucide-react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 
 type List = {
-  _id: Id<'lists'>;
+  _id: Id<"lists">;
   _creationTime: number;
   name: string;
-  userId: Id<'users'>;
+  userId: Id<"users">;
   order: number;
 };
 
 interface TopSectionProps {
   lists: List[];
   selectedList: List;
-  setSelectedListId: (id: Id<'lists'>) => void;
+  setSelectedListId: (id: Id<"lists">) => void;
 }
 
-export default function TopSection({ lists, selectedList, setSelectedListId }: TopSectionProps) {
+export default function TopSection({
+  lists,
+  selectedList,
+  setSelectedListId,
+}: TopSectionProps) {
   const updateListName = useMutation(api.lists.updateListName);
   const createList = useMutation(api.lists.createList);
   const deleteList = useMutation(api.lists.deleteList);
@@ -43,40 +61,23 @@ export default function TopSection({ lists, selectedList, setSelectedListId }: T
         name: newName,
       });
     } catch (error) {
-      console.error('Failed to update list name:', error);
+      console.error("Failed to update list name:", error);
     }
   };
 
   const handleCreateList = async () => {
     try {
-      const newListId = await createList({ name: 'New List' });
+      const newListId = await createList({ name: "New List" });
       setSelectedListId(newListId);
       setTimeout(() => {
-        const input = document.getElementById('list-name-input');
+        const input = document.getElementById("list-name-input");
         if (input) {
           (input as HTMLInputElement).focus();
           (input as HTMLInputElement).select();
         }
       }, 100);
     } catch (error) {
-      console.error('Failed to create list:', error);
-    }
-  };
-
-  const handleDeleteList = async () => {
-    if (lists.length === 1) {
-      window.alert("You must have at least one list.");
-      return;
-    }
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${selectedList.name}"? This cannot be undone.`
-    );
-    if (confirmed) {
-      try {
-        await deleteList({ listId: selectedList._id });
-      } catch (error) {
-        console.error('Failed to delete list:', error);
-      }
+      console.error("Failed to create list:", error);
     }
   };
 
@@ -87,10 +88,23 @@ export default function TopSection({ lists, selectedList, setSelectedListId }: T
 
     try {
       await reorderLists({
-        listIds: reorderedLists.map(list => list._id),
+        listIds: reorderedLists.map((list) => list._id),
       });
     } catch (error) {
-      console.error('Failed to reorder lists:', error);
+      console.error("Failed to reorder lists:", error);
+    }
+  };
+
+  const handleDeleteList = async () => {
+    try {
+      await deleteList({ listId: selectedList._id });
+      // After deletion, set selected list to the first available list
+      const remainingLists = lists.filter(l => l._id !== selectedList._id);
+      if (remainingLists.length > 0) {
+        setSelectedListId(remainingLists[0]._id);
+      }
+    } catch (error) {
+      console.error('Failed to delete list:', error);
     }
   };
 
@@ -100,8 +114,8 @@ export default function TopSection({ lists, selectedList, setSelectedListId }: T
         id="list-name-input"
         className="!text-3xl border-none outline-none w-full bg-transparent p-2 font-serif placeholder:text-gray-500"
         value={listName}
-        onChange={e => setListName(e.target.value)}
-        onBlur={e => void handleListNameChange(e.target.value)}
+        onChange={(e) => setListName(e.target.value)}
+        onBlur={(e) => void handleListNameChange(e.target.value)}
         placeholder="list name goes here"
       />
 
@@ -111,26 +125,23 @@ export default function TopSection({ lists, selectedList, setSelectedListId }: T
             <ChevronDown className="w-4 h-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-            Switch List
-          </div>
-          <DropdownMenuSeparator />
-
+        <DropdownMenuContent
+          align="end"
+          className="flex-col space-y-1 w-56 border-[0.1px]"
+        >
           {lists.map((list, idx) => (
             <DropdownMenuItem
               key={list._id}
               onClick={() => setSelectedListId(list._id)}
               className={`
                 flex items-center justify-between cursor-pointer
-                my-1.5
-                ${selectedList._id === list._id ? 'bg-accent font-medium' : ''}
-                ${dragOverIdx === idx && draggedIdx !== null && draggedIdx !== idx ? 'bg-accent/50' : ''}
+                ${selectedList._id === list._id ? "bg-accent font-medium" : ""}
+                ${dragOverIdx === idx && draggedIdx !== null && draggedIdx !== idx ? "bg-accent/50" : ""}
               `}
               draggable
               onDragStart={(e: React.DragEvent) => {
                 setDraggedIdx(idx);
-                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.effectAllowed = "move";
               }}
               onDragOver={(e: React.DragEvent) => {
                 e.preventDefault();
@@ -150,32 +161,86 @@ export default function TopSection({ lists, selectedList, setSelectedListId }: T
               }}
               style={{
                 opacity: draggedIdx === idx ? 0.5 : 1,
-                userSelect: 'none',
+                userSelect: "none",
               }}
             >
               <span className="flex-1 truncate">
-                {list.name || <span className="italic text-muted-foreground">Untitled</span>}
+                {list.name || (
+                  <span className="italic text-muted-foreground">Untitled</span>
+                )}
               </span>
               <GripVertical className="w-4 h-4 text-muted-foreground/50" />
             </DropdownMenuItem>
           ))}
 
-          <DropdownMenuSeparator />
-
-          <DropdownMenuItem onClick={() => void handleCreateList()} className="text-sm">
+          <DropdownMenuItem
+            onClick={() => void handleCreateList()}
+            className="text-sm"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Create New List
           </DropdownMenuItem>
 
-          <DropdownMenuItem
+          {/*<DropdownMenuItem
             onClick={() => void handleDeleteList()}
-            className="text-sm text-destructive focus:text-destructive h-10"
+            className="text-sm text-destructive focus:text-destructive"
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Delete Current List
-          </DropdownMenuItem>
+          </DropdownMenuItem>*/}
+          <Dialog>
+            <DialogTrigger className="w-full -mt-1">
+              <button className="flex cursor-pointer text-destructive w-full select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Current List
+              </button>
+            </DialogTrigger>
+            {lists.length === 1 ? (
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>You need at least one list</DialogTitle>
+                  <DialogDescription>
+                    You cannot delete your last remaining list. Please create
+                    another list before deleting this one.
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            ) : (
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Are you absolutely sure?</DialogTitle>
+                  <DialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    your list and remove its data from our servers.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogClose>
+                  <Button
+                    variant="destructive"
+                    onClick={() => void handleDeleteList()}
+                  >
+                  Delete this list
+                </Button>
+                </DialogClose>
+              </DialogContent>
+            )}
+          </Dialog>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
   );
 }
+/*
+const handleDeleteList = async () => {
+  if (lists.length === 1) {
+    window.alert("You must have at least one list.");
+    return;
+  }
+  setConfirmDialog(true);
+  const confirmed = window.confirm(
+    `Are you sure you want to delete "${selectedList.name}"? This cannot be undone.`
+  );
+  if (confirmed) {
+
+  }
+};*/

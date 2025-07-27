@@ -43,6 +43,7 @@ export const getNodes = query({
       state: v.union(v.literal("red"), v.literal("yellow"), v.literal("green")),
       listId: v.id("lists"),
       order: v.number(),
+      dueDate: v.optional(v.string()),
     })
   ),
   handler: async (ctx, args) => {
@@ -188,6 +189,7 @@ export const createNode = mutation({
     listId: v.id("lists"),
     text: v.string(),
     state: v.union(v.literal("red"), v.literal("yellow"), v.literal("green")),
+    dueDate: v.optional(v.string()),
   },
   returns: v.id("nodes"),
   handler: async (ctx, args) => {
@@ -214,6 +216,7 @@ export const createNode = mutation({
       state: args.state,
       listId: args.listId,
       order: maxOrder + 1,
+      dueDate: args.dueDate ?? undefined,
     });
 
     return nodeId;
@@ -225,6 +228,7 @@ export const updateNodeText = mutation({
   args: {
     nodeId: v.id("nodes"),
     text: v.string(),
+    dueDate: v.optional(v.string()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -243,7 +247,7 @@ export const updateNodeText = mutation({
       throw new Error("Access denied");
     }
 
-    await ctx.db.patch(args.nodeId, { text: args.text });
+    await ctx.db.patch(args.nodeId, { text: args.text, dueDate: args.dueDate ?? undefined });
     return null;
   },
 });

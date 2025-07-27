@@ -7,9 +7,6 @@ import { authTables } from "@convex-dev/auth/server";
 // The schema provides more precise TypeScript types.
 export default defineSchema({
   ...authTables,
-  numbers: defineTable({
-    value: v.number(),
-  }),
   lists: defineTable({
     name: v.string(),
     userId: v.id("users"),
@@ -22,6 +19,7 @@ export default defineSchema({
     state: v.union(v.literal("red"), v.literal("yellow"), v.literal("green")),
     listId: v.id("lists"),
     order: v.number(),
+    dueDate: v.optional(v.string()), // RFC 3339 date string or null
   })
     .index("by_list", ["listId"])
     .index("by_list_and_order", ["listId", "order"]),

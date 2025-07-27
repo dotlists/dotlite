@@ -7,6 +7,7 @@ type Node = {
   state: 'red' | 'yellow' | 'green';
   listId: Id<'lists'>;
   order: number;
+  dueDate?: string | null;
 };
 
 interface MiddleSectionProps {

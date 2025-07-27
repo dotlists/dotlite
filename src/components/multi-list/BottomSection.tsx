@@ -5,7 +5,7 @@ import { Id } from '../../../convex/_generated/dataModel';
 import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Calendar } from 'lucide-react';
 import clsx from 'clsx';
 
 type Node = {
@@ -15,6 +15,7 @@ type Node = {
   state: 'red' | 'yellow' | 'green';
   listId: Id<'lists'>;
   order: number;
+  dueDate?: string | null;
 };
 
 interface BottomSectionProps {
@@ -31,18 +32,18 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
   const textareaRefs = useRef<Map<Id<'nodes'>, HTMLTextAreaElement>>(new Map());
   const [localTexts, setLocalTexts] = useState<Record<string, string>>({});
   const [lastCreatedNodeId, setLastCreatedNodeId] = useState<Id<'nodes'> | null>(null);
+  const [localDueDates, setLocalDueDates] = useState<Record<string, string>>({});
+  const [datePickerOpen, setDatePickerOpen] = useState<Record<string, boolean>>({});
 
   // Initialize local texts from nodes, preserving existing local changes
   useEffect(() => {
     setLocalTexts(prev => {
       const newLocalTexts = { ...prev };
       nodes.forEach(node => {
-        // Only set from database if we don't have local text for this node
         if (!(node._id in newLocalTexts)) {
           newLocalTexts[node._id] = node.text;
         }
       });
-      // Remove any local texts for nodes that no longer exist
       const nodeIds = new Set(nodes.map(n => n._id));
       Object.keys(newLocalTexts).forEach(nodeId => {
         if (!nodeIds.has(nodeId as Id<'nodes'>)) {
@@ -50,6 +51,22 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
         }
       });
       return newLocalTexts;
+    });
+
+    setLocalDueDates(prev => {
+      const newLocalDueDates = { ...prev };
+      nodes.forEach(node => {
+        if (!(node._id in newLocalDueDates)) {
+          newLocalDueDates[node._id] = node.dueDate ?? "";
+        }
+      });
+      const nodeIds = new Set(nodes.map(n => n._id));
+      Object.keys(newLocalDueDates).forEach(nodeId => {
+        if (!nodeIds.has(nodeId as Id<'nodes'>)) {
+          delete newLocalDueDates[nodeId];
+        }
+      });
+      return newLocalDueDates;
     });
   }, [nodes]);
 
@@ -101,16 +118,25 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
     }));
   };
 
-  const handleTextBlur = async (node: Node, newText: string) => {
+  const handleDueDateChange = (nodeId: Id<'nodes'>, newDueDate: string) => {
+    setLocalDueDates(prev => ({
+      ...prev,
+      [nodeId]: newDueDate
+    }));
+  };
+
+  const handleTextBlur = async (node: Node, newText: string, dueDate?: string) => {
     const trimmed = newText.trim();
-    if (trimmed !== node.text) {
+    const dueDateVal = dueDate === "" ? undefined : dueDate;
+    if (trimmed !== node.text || dueDateVal !== node.dueDate) {
       try {
         await updateNodeText({
           nodeId: node._id,
           text: trimmed,
+          dueDate: dueDateVal,
         });
       } catch (error) {
-        console.error('Failed to update node text:', error);
+        console.error('Failed to update node text or due date:', error);
       }
     }
   };
@@ -141,17 +167,35 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
   // Animation order
   const getOrder = (state: 'red' | 'yellow' | 'green') =>
     state === 'red' ? 0 : state === 'yellow' ? 1 : 2;
-  const sortedNodes = [...nodes].sort((a, b) => getOrder(a.state) - getOrder(b.state));
+
+  // Sort by color, then due date (closest first, null last), then alphabetical
+  const sortedNodes = [...nodes].sort((a, b) => {
+    const colorDiff = getOrder(a.state) - getOrder(b.state);
+    if (colorDiff !== 0) return colorDiff;
+
+    // Due date: null/undefined goes last
+    if (a.dueDate && b.dueDate) {
+      const dateDiff = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      if (dateDiff !== 0) return dateDiff;
+    } else if (a.dueDate && !b.dueDate) {
+      return -1;
+    } else if (!a.dueDate && b.dueDate) {
+      return 1;
+    }
+
+    // Alphabetical by text
+    return a.text.localeCompare(b.text);
+  });
 
   return (
     <div className="space-y-3">
       <Button
         variant="fancy"
-        className="w-full"
+        className="w-full flex-col"
         onClick={() => void addItem()}
       >
-        <Plus className="w-4 h-4 mr-2" />
-        Add item (⌘+Enter)
+        <Plus className="w-5 h-5 -mb-3" />
+        <span className="text-xs">⌘+enter</span>
       </Button>
 
       <motion.div layout className="space-y-2">
@@ -161,6 +205,9 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
             const colorClass = node.state === 'red' ? 'bg-red-500' :
                               node.state === 'yellow' ? 'bg-yellow-500' :
                               'bg-green-500';
+            const localDueDate = localDueDates[node._id] ?? "";
+            const isDatePickerOpen = datePickerOpen[node._id] ?? false;
+
             return (
               <motion.div
                 key={node._id}
@@ -212,7 +259,7 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                     textarea.style.height = `${Math.max(32, textarea.scrollHeight)}px`;
                   }}
                   onBlur={(e: React.FocusEvent<HTMLTextAreaElement>) => {
-                    void handleTextBlur(node, e.currentTarget.value);
+                    void handleTextBlur(node, e.currentTarget.value, localDueDate);
                   }}
                   onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                     const textarea = e.currentTarget;
@@ -235,7 +282,7 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
 
                     // Arrow key navigation
                     const currentIndex = sortedNodes.findIndex(n => n._id === node._id);
-                    
+
                     if (
                       e.key === 'ArrowUp' &&
                       textarea.selectionStart === 0 &&
@@ -246,7 +293,7 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                       const prevNode = sortedNodes[currentIndex - 1];
                       textareaRefs.current.get(prevNode._id)?.focus();
                     }
-                    
+
                     if (
                       e.key === 'ArrowDown' &&
                       textarea.selectionStart === textarea.value.length &&
@@ -265,6 +312,52 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                     }
                   }}
                 />
+
+                {localDueDate
+                  ? (
+                    <input
+                      type="date"
+                      className="ml-2 px-2 py-1 rounded border border-gray-300 bg-white text-sm"
+                      value={localDueDate}
+                      onChange={e => {
+                        handleDueDateChange(node._id, e.target.value);
+                        void handleTextBlur(node, localText, e.target.value);
+                      }}
+                      onBlur={e => {
+                        void handleTextBlur(node, localText, e.target.value);
+                      }}
+                      placeholder="Due date"
+                    />
+                  )
+                  : (
+                    <button
+                      className="ml-2 p-1 rounded hover:bg-gray-100"
+                      type="button"
+                      aria-label="Set due date"
+                      onClick={() => setDatePickerOpen(prev => ({ ...prev, [node._id]: true }))}
+                    >
+                      <Calendar className="w-4 h-4 text-primary" />
+                    </button>
+                  )
+                }
+
+                {isDatePickerOpen && !localDueDate && (
+                  <input
+                    type="date"
+                    className="ml-2 px-2 py-1 rounded border border-gray-300 bg-white text-sm"
+                    value={localDueDate}
+                    autoFocus
+                    onChange={e => {
+                      handleDueDateChange(node._id, e.target.value);
+                      void handleTextBlur(node, localText, e.target.value);
+                      setDatePickerOpen(prev => ({ ...prev, [node._id]: false }));
+                    }}
+                    onBlur={_ => {
+                      setDatePickerOpen(prev => ({ ...prev, [node._id]: false }));
+                    }}
+                    placeholder="Due date"
+                  />
+                )}
 
                 <Button
                   size="icon"
