@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "../ui/dropdown-menu";
-import { ChevronDown, Plus, Trash2, GripVertical, Calendar1, Settings2, Settings } from "lucide-react";
+import { ChevronDown, Plus, Trash2, GripVertical, Settings } from "lucide-react";
 import {
   Dialog,
   DialogClose,
