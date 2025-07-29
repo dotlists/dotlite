@@ -6,6 +6,7 @@ import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Plus, Calendar } from 'lucide-react';
+import MiddleSection from './MiddleSection';
 import clsx from 'clsx';
 
 type Node = {
@@ -189,14 +190,17 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
 
   return (
     <div className="space-y-3">
+      <div className="flex gap-3">
+      <MiddleSection nodes={nodes} />
       <Button
         variant="fancy"
-        className="w-full flex-col"
+        className="flex-col"
         onClick={() => void addItem()}
       >
         <Plus className="w-5 h-5 -mb-3" />
         <span className="text-xs">⌘+enter</span>
       </Button>
+      </div>
 
       <motion.div layout className="space-y-2">
         <AnimatePresence>

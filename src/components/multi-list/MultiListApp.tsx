@@ -59,7 +59,7 @@ export default function MultiListApp() {
         selectedList={selectedList}
         setSelectedListId={setSelectedListId}
       />
-      <MiddleSection nodes={nodes} />
+      {/*<MiddleSection nodes={nodes} />*/}
       <BottomSection listId={selectedListId} nodes={nodes} />
     </main>
   );
