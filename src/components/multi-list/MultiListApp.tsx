@@ -4,7 +4,7 @@ import { api } from '../../../convex/_generated/api';
 import { Id } from '../../../convex/_generated/dataModel';
 import { Card, CardContent } from '../ui/card';
 import TopSection from './TopSection';
-import MiddleSection from './MiddleSection';
+// import MiddleSection from './MiddleSection';
 import BottomSection from './BottomSection';
 
 export default function MultiListApp() {
