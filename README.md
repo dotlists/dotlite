@@ -10,6 +10,7 @@ Here is a general map of what you should do if you want certain features:
 
 * Team features (notifications, team lists, comments): Use Dotlist. Their Teams implementation is not super pretty but it works.
 * AI features: You probably don't need them? and if you do, use Dotlist. They do have AI features (albeit not super useful ones).
+* Subtasks: Dotlist Lite supports multiple lines -- have one line for each subtask and use asterisks (*) to organize. If you want proper subtasks (which you quite certainly don't really need), either use mutliple lists or switch to Dotlist.
 * Everything else: Dotlist Lite has it :D In fact, Dotlist Lite often gets features first before I upstream them into Dotlist -- such as calendar integration.
 
 Check it out at [dotlist-lite.vercel.app](https://dotlist-lite.vercel.app).
