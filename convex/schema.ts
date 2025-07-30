@@ -20,7 +20,9 @@ export default defineSchema({
     listId: v.id("lists"),
     order: v.number(),
     dueDate: v.optional(v.string()), // RFC 3339 date string or null
+    parent: v.optional(v.id("nodes")),
   })
     .index("by_list", ["listId"])
-    .index("by_list_and_order", ["listId", "order"]),
+    .index("by_list_and_order", ["listId", "order"])
+    .index("by_list_and_parent", ["listId", "parent"]),
 });

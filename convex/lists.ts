@@ -51,6 +51,7 @@ export const getNodes = query({
       listId: v.id("lists"),
       order: v.number(),
       dueDate: v.optional(v.string()),
+      parent: v.optional(v.id("nodes")),
     })
   ),
   handler: async (ctx, args) => {
@@ -79,7 +80,10 @@ export const getNodes = query({
       .order("asc")
       .collect();
 
-    return nodes;
+    return nodes.map((node) => ({
+      ...node,
+      parent: node.parent,
+    }));
   },
 });
 
@@ -205,6 +209,7 @@ export const createNode = mutation({
     text: v.string(),
     state: v.union(v.literal("red"), v.literal("yellow"), v.literal("green")),
     dueDate: v.optional(v.string()),
+    parent: v.optional(v.id("nodes")),
   },
   returns: v.id("nodes"),
   handler: async (ctx, args) => {
@@ -221,7 +226,9 @@ export const createNode = mutation({
     // Get the current max order for this list's nodes
     const existingNodes = await ctx.db
       .query("nodes")
-      .withIndex("by_list", (q) => q.eq("listId", args.listId))
+      .withIndex("by_list_and_parent", (q) =>
+        q.eq("listId", args.listId).eq("parent", args.parent)
+      )
       .collect();
 
     const maxOrder = existingNodes.reduce((max, node) => Math.max(max, node.order), -1);
@@ -232,6 +239,7 @@ export const createNode = mutation({
       listId: args.listId,
       order: maxOrder + 1,
       dueDate: args.dueDate ?? undefined,
+      parent: args.parent,
     });
 
     return nodeId;
@@ -315,6 +323,17 @@ export const deleteNode = mutation({
     const list = await ctx.db.get(node.listId);
     if (!list || list.userId !== userId) {
       throw new Error("Access denied");
+    }
+
+    // Recursively delete all children
+    const children = await ctx.db
+      .query("nodes")
+      .withIndex("by_list_and_parent", (q) =>
+        q.eq("listId", node.listId).eq("parent", node._id)
+      )
+      .collect();
+    for (const child of children) {
+      await ctx.db.delete(child._id);
     }
 
     await ctx.db.delete(args.nodeId);
