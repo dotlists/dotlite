@@ -43,7 +43,7 @@ http.route({
     }
 
     // Only tasks with due dates
-    const tasksWithDueDates = allNodes.filter(node => node.dueDate);
+    const tasksWithDueDates = allNodes.filter(node => node.dueDate && node.state === "red");
 
     // Generate ICS events
     const events = tasksWithDueDates.map(node => {
