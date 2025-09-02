@@ -2,8 +2,11 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+body {
+    @apply bg-white dark:bg-black
+}
+
 :root {
-    background-color: white;
     --font-serif: "PP Editorial";
     --font-sans:
       Geist;
