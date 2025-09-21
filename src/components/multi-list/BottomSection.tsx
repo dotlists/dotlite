@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Plus, Calendar } from "lucide-react";
 import MiddleSection from "./MiddleSection";
 import Confirm from "../Confirm";
-import Confetti from "react-confetti-boom";
 type Node = {
   _id: Id<"nodes">;
   _creationTime: number;
@@ -24,23 +23,7 @@ interface BottomSectionProps {
   nodes: Node[];
 }
 
-const pastelColors = [
-  "#FFD1DC", // Pastel Pink
-  "#FFDAB9", // Pastel Peach
-  "#FFFACD", // Pastel Yellow
-  "#AAF0D1", // Pastel Mint
-  "#B0EACD", // Pastel Green
-  "#AEC6CF", // Pastel Blue
-  "#E3E4FA", // Pastel Lavender
-  "#E0BBE4", // Pastel Lilac
-  "#C3B1E1", // Pastel Purple
-  "#FFB347", // Pastel Orange
-  "#FFB3AB", // Pastel Coral
-  "#B2FFFF", // Pastel Aqua
-  "#BFDFFF", // Pastel Sky Blue
-  "#FFF9B0", // Pastel Lemon
-  "#D3D3D3"  // Pastel Gray
-];
+
 
 
 export default function BottomSection({ listId, nodes }: BottomSectionProps) {
@@ -271,7 +254,6 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
               >
                 <div
                   onClick={() => {
-                    triggerConfetti();
                     void handleStateChange(node._id, node.state, 1)
                   }
                   }
