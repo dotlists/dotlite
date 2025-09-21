@@ -7,6 +7,7 @@ import { Button } from "../ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Plus, Calendar } from "lucide-react";
 import MiddleSection from "./MiddleSection";
+import Confirm from "../Confirm";
 
 type Node = {
   _id: Id<"nodes">;
@@ -406,15 +407,19 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                       placeholder="Due date"
                     />
                   )}
-
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="w-6 h-6 my-auto opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
-                    onClick={() => void handleDeleteNode(node._id)}
+                  <Confirm
+                    action="Delete node"
+                    onConfirm={() => void handleDeleteNode(node._id)}
+                    message="Deleting this task is permanent and cannot be undone. Are you sure you want to delete it?"
                   >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="w-6 h-6 my-auto opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </Confirm>
                 </div>
               </motion.div>
             );
