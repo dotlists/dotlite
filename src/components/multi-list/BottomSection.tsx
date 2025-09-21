@@ -231,31 +231,9 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
     return a.text.localeCompare(b.text);
   });
 
-  // const { width, height } = useWindowSize();
-  // const [opacity, setOpacity] = useState(0);
-  // const triggerConfetti = () => {
-  //   setOpacity(1);
-  //   setTimeout(() => {
-  //     setOpacity(0);
-  //   }, 1000); // Stop after 3 seconds
-  // };
-  // const confettiRef = useRef(null);
-
-  // const triggerConfetti = () => {
-  //   if (confettiRef.current) {
-  //     confettiRef.current.boom();
-  //   }
-  // };
-  const [key, setKey] = useState(null as Date | null);
-  const triggerConfetti = () => {
-    setKey(new Date()); // trigger rerender of confetti
-  };
 
   return (
     <div className="space-y-3">
-      {
-        key && <Confetti key={key.toString()} particleCount={400} launchSpeed={1.5} colors={pastelColors} x={0.5} y={1} />
-      }
       <div className="flex gap-3">
         <MiddleSection nodes={nodes} />
         <Button
