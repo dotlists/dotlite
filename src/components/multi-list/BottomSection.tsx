@@ -8,7 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Plus, Calendar } from "lucide-react";
 import MiddleSection from "./MiddleSection";
 import Confirm from "../Confirm";
-
+import { useWindowSize } from "react-use";
+import Confetti from "react-confetti-boom";
 type Node = {
   _id: Id<"nodes">;
   _creationTime: number;
@@ -23,6 +24,25 @@ interface BottomSectionProps {
   listId: Id<"lists">;
   nodes: Node[];
 }
+
+const pastelColors = [
+  "#FFD1DC", // Pastel Pink
+  "#FFDAB9", // Pastel Peach
+  "#FFFACD", // Pastel Yellow
+  "#AAF0D1", // Pastel Mint
+  "#B0EACD", // Pastel Green
+  "#AEC6CF", // Pastel Blue
+  "#E3E4FA", // Pastel Lavender
+  "#E0BBE4", // Pastel Lilac
+  "#C3B1E1", // Pastel Purple
+  "#FFB347", // Pastel Orange
+  "#FFB3AB", // Pastel Coral
+  "#B2FFFF", // Pastel Aqua
+  "#BFDFFF", // Pastel Sky Blue
+  "#FFF9B0", // Pastel Lemon
+  "#D3D3D3"  // Pastel Gray
+];
+
 
 export default function BottomSection({ listId, nodes }: BottomSectionProps) {
   const createNode = useMutation(api.lists.createNode);
@@ -212,8 +232,31 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
     return a.text.localeCompare(b.text);
   });
 
+  // const { width, height } = useWindowSize();
+  // const [opacity, setOpacity] = useState(0);
+  // const triggerConfetti = () => {
+  //   setOpacity(1);
+  //   setTimeout(() => {
+  //     setOpacity(0);
+  //   }, 1000); // Stop after 3 seconds
+  // };
+  // const confettiRef = useRef(null);
+
+  // const triggerConfetti = () => {
+  //   if (confettiRef.current) {
+  //     confettiRef.current.boom();
+  //   }
+  // };
+  const [key, setKey] = useState(null as Date | null);
+  const triggerConfetti = () => {
+    setKey(new Date()); // trigger rerender of confetti
+  };
+
   return (
     <div className="space-y-3">
+      {
+        key && <Confetti key={key.toString()} particleCount={400} launchSpeed={1.5} colors={pastelColors} x={0.5} y={1} />
+      }
       <div className="flex gap-3">
         <MiddleSection nodes={nodes} />
         <Button
@@ -250,8 +293,10 @@ export default function BottomSection({ listId, nodes }: BottomSectionProps) {
                 className="flex"
               >
                 <div
-                  onClick={() =>
+                  onClick={() => {
+                    triggerConfetti();
                     void handleStateChange(node._id, node.state, 1)
+                  }
                   }
                   onContextMenu={(e) => {
                     e.preventDefault();
