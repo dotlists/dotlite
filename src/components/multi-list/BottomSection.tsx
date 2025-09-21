@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Plus, Calendar } from "lucide-react";
 import MiddleSection from "./MiddleSection";
 import Confirm from "../Confirm";
-import { useWindowSize } from "react-use";
 import Confetti from "react-confetti-boom";
 type Node = {
   _id: Id<"nodes">;
