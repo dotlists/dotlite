@@ -339,7 +339,7 @@ export const initializeUserLists = mutation({
       .collect();
 
     if (existingLists.length > 0) {
-      return existingLists[0]._id;
+      return existingLists.filter(l => l.order === 0)[0]._id;
     }
 
     // Create default list
